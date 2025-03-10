@@ -14,5 +14,7 @@ func InitDB() {
 	DB, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/chat")
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		log.Println("Подключение к бд прошло успешно!")
 	}
 }
