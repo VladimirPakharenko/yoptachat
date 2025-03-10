@@ -1,23 +1,38 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"yoptachat/pkg/auth"
-	"yoptachat/pkg/chat"
+	// "yoptachat/pkg/chat"
 	"yoptachat/pkg/db"
 )
 
 func main() {
-	db.InitDB()
+	database := db.Connect()
+	defer database.Close()
 
-	fs := http.FileServer(http.Dir("yoptachat/pkg/templates"))
-	http.Handle("/", fs)
+	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		auth.RegisterHandler(w, r, database)
+	})
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		auth.LoginHandler(w, r, database)
+	})
+	// http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+	// 	chat.SearchUsersHandler(w, r, database)
+	// })
+	// http.HandleFunc("/add_friend", func(w http.ResponseWriter, r *http.Request) {
+	// 	chat.AddFriendHandler(w, r, database)
+	// })
 
-	http.HandleFunc("/register", auth.RegisterHandler)
-	http.HandleFunc("/login", auth.LoginHandler)
-	http.HandleFunc("/index.html", chat.IndexHandler)
+	// Главная страница с проверкой сессии
+	http.HandleFunc("/", auth.CheckSession(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./pkg/templates/index.html")
+	}))
 
-	log.Println("Сервер запущен на :5500")
-	log.Fatal(http.ListenAndServe(":5500", nil))
+	// Страница регистрации/авторизации
+	http.HandleFunc("/regauth.html", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./pkg/templates/regauth.html")
+	})
+
+	http.ListenAndServe(":5050", nil)
 }

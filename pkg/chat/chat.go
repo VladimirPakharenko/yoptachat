@@ -1,37 +1,41 @@
 package chat
 
-import (
-    "log"
-    "net/http"
-    "yoptachat/pkg/db"
-    "html/template"
-)
+// import (
+// 	"database/sql"
+// 	"net/http"
+// )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
-    cookie, err := r.Cookie("session")
-    if err != nil {
-        http.Redirect(w, r, "/regauth.html", http.StatusSeeOther)
-        return
-    }
+// Функция поиска пользователей
+// func SearchUsersHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+// 	query := r.URL.Query().Get("q")
+// 	rows, err := db.Query("SELECT id, login, phone FROM users WHERE login LIKE ? OR phone LIKE ?", "%"+query+"%", "%"+query+"%")
+// 	if err != nil {
+// 		http.Error(w, "Ошибка поиска", http.StatusInternalServerError)
+// 		return
+// 	}
+// 	defer rows.Close()
 
-    login := cookie.Value
-    var userInfo string
-    err = db.DB.QueryRow("SELECT login FROM users WHERE login = ?", login).Scan(&userInfo)
-    if err != nil {
-        log.Println("Ошибка получения данных пользователя:", err)
-        http.Redirect(w, r, "/regauth.html", http.StatusSeeOther)
-        return
-    }
+// 	// Формирование ответа
+// 	var users []User
+// 	for rows.Next() {
+// 		var user User
+// 		rows.Scan(&user.ID, &user.Login, &user.Phone)
+// 		users = append(users, user)
+// 	}
+// 	// Отправка JSON-ответа
+// 	// (реализация JSON-ответа опущена для краткости)
+// }
 
-    renderTemplate(w, "templates/index.html", userInfo)
-}
+// Функция добавления друга
+// func AddFriendHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+// 	userID := r.URL.Query().Get("user_id")
+// 	friendID := r.URL.Query().Get("friend_id")
 
-func renderTemplate(w http.ResponseWriter, tmpl string, data ...interface{}) {
-    t, err := template.ParseFiles(tmpl)
-    if err != nil {
-        log.Println("Ошибка при рендеринге шаблона:", err)
-        http.Error(w, "Ошибка сервера", http.StatusInternalServerError)
-        return
-    }
-    t.Execute(w, data)
-}
+// 	_, err := db.Exec("INSERT INTO friends (userid1, userid2) VALUES (?, ?)", userID, friendID)
+// 	if err != nil {
+// 		http.Error(w, "Ошибка добавления друга", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	w.WriteHeader(http.StatusOK)
+// }
