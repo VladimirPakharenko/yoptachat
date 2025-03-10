@@ -1,21 +1,34 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-	_ "github.com/go-sql-driver/mysql"
+    "database/sql"
+    "log"
+
+    _ "github.com/go-sql-driver/mysql"
 )
 
-// Подключение к базе данных
-func Connect() *sql.DB {
-	dsn := "root:@tcp(127.0.0.1:3306)/chat"
-	db, err := sql.Open("mysql", dsn)
+var db *sql.DB
+
+func InitDB() {
+    var err error
+	// Подключаемся к базе данных "chat" с логином root и пустым паролем
+	db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/chat")
 	if err != nil {
-		log.Fatalf("Ошибка подключения к базе данных: %v", err)
-        fmt.Println("ошибка подключения к бд")
-	} else {
-        fmt.Println("бд успешно подключена")
+		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
+	}
+
+	// Проверяем подключение
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Ошибка при проверке подключения: %v", err)
+	}
+}
+func Close() {
+    if err := db.Close(); err != nil {
+        log.Fatal(err)
     }
-	return db
+}
+
+// Дополнительные функции для работы с базой данных
+func GetDB() *sql.DB {
+    return db
 }
