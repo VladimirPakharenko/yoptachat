@@ -14,6 +14,6 @@ func main() {
     http.HandleFunc("/login", auth.LoginHandler)
     http.HandleFunc("/index.html", chat.IndexHandler)
 
-    log.Println("Сервер запущен на http://localhost:8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    log.Println("Сервер запущен на http://localhost:5500")
+    log.Fatal(http.ListenAndServe(":5500", nil))
 }
