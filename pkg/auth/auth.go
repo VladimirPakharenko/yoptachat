@@ -12,9 +12,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
         login := r.FormValue("login")
         phone := r.FormValue("phone")
         password := r.FormValue("password")
-        repeatPassword := r.FormValue("repeatpassword")
+        rPassword := r.FormValue("rpassword")
 
-        if password != repeatPassword {
+        if password != rPassword {
             log.Println("Пароли не совпадают")
             http.Error(w, "Пароли не совпадают", http.StatusBadRequest)
             return
@@ -37,7 +37,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodPost {
         login := r.FormValue("login")
         password := r.FormValue("password")
+        rPassword := r.FormValue("rpassword")
 
+        if password != rPassword {
+            log.Println("Пароли не совпадают")
+            http.Error(w, "Пароли не совпадают", http.StatusBadRequest)
+            return
+        }
+        
         var storedPassword string
         err := db.DB.QueryRow("SELECT password FROM users WHERE login = ?", login).Scan(&storedPassword)
         if err != nil || storedPassword != password {
