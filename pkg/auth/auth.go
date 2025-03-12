@@ -1,107 +1,76 @@
 package auth
+
 import (
-	"fmt"
-	"html/template"
-	"net/http"
-	"yoptachat/pkg/db"
-	// "github.com/gorilla/sessions"
+    "database/sql"
+    "net/http"
+    "golang.org/x/crypto/bcrypt"
+    "yoptachat/pkg/models"
 )
 
-var (
-// Создаем хранилище сессий
-// store = sessions.NewCookieStore([]byte("secret-key"))
-)
-
-// Обработчик регистрации пользователя
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		login := r.FormValue("login")
-		phone := r.FormValue("phone")
-		password := r.FormValue("password")
-		rPassword := r.FormValue("rpassword")
-
-		// Проверка соответствия паролей
-		if password != rPassword {
-			http.Error(w, "Пароли не совпадают", http.StatusBadRequest)
-			return
-		}
-
-		// Сохранение пользователя в базе данных
-		if err := saveUser(login, phone, password); err != nil {
-			http.Error(w, "Ошибка при регистрации", http.StatusInternalServerError)
-			return
-		}
-
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-	} else {
-		// Если метод не POST, показываем форму
-		tmpl := template.Must(template.ParseFiles("../pkg/templates/regauth.html"))
-		tmpl.Execute(w, nil)
-	}
+// AuthService предоставляет методы для аутентификации пользователей.
+type AuthService struct {
+    db *sql.DB
 }
 
-// Обработчик авторизации пользователя
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		login := r.FormValue("login")
-		password := r.FormValue("password")
-		rPassword := r.FormValue("rpassword")
-
-		if password != rPassword {
-			http.Error(w, "Пароли не совпадают", http.StatusBadRequest)
-			return
-		}
-		// Проверка пользователя
-		if err := checkUser(login, password); err != nil {
-			http.Error(w, "Ошибка авторизации", http.StatusUnauthorized)
-			return
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:  "session",
-			Value: login, // Храним имя пользователя в куке
-			Path:  "/",
-		})
-
-		// Успешная авторизация
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	} else {
-		// Если метод не POST, показываем форму
-		tmpl := template.Must(template.ParseFiles("../pkg/templates/regauth.html"))
-		tmpl.Execute(w, nil)
-	}
+// NewAuthService создает новый AuthService.
+func NewAuthService(db *sql.DB) *AuthService {
+    return &AuthService{db}
 }
 
-// Функция для сохранения пользователя в базе данных
-func saveUser(login, phone, password string) error {
-	db := db.GetDB()
-	_, err := db.Exec("INSERT INTO users (login, phone, password) VALUES (?, ?, ?)", login, phone, password)
-	return err
+// Register регистрирует нового пользователя.
+func (a *AuthService) Register(login, phone, password string) (int, error) {
+    hashedPassword, err := hashPassword(password)
+    if err != nil {
+        return 0, err
+    }
+
+    user := models.User{Login: login, Phone: phone, Password: hashedPassword}
+    result, err := a.db.Exec("INSERT INTO Users (login, phone, password) VALUES (?, ?, ?)", user.Login, user.Phone, user.Password)
+    if err != nil {
+        return 0, err
+    }
+
+    id, err := result.LastInsertId()
+    return int(id), err
 }
 
-// Функция для проверки пользователя
-func checkUser(login, password string) error {
-	db := db.GetDB()
-	var storedPassword string
-	err := db.QueryRow("SELECT password FROM users WHERE login = ?", login).Scan(&storedPassword)
-	if err != nil {
-		return err
-	}
+// Login аутентифицирует пользователя и создает сессию.
+func (a *AuthService) Login(w http.ResponseWriter, r *http.Request) {
+    login := r.FormValue("login")
+    password := r.FormValue("password")
 
-	if storedPassword != password {
-		return fmt.Errorf("неверный пароль")
-	}
-	return nil
+    user, err := a.getUserByLogin(login)
+    if err != nil || !comparePasswords(user.Password, password) {
+        http.Error(w, "Неверный логин или пароль", http.StatusUnauthorized)
+        return
+    }
+
+    // Создание сессии
+    session, _ := store.Get(r, "session-name")
+    session.Values["user"] = user.ID
+    session.Save(r, w)
+
+    http.Redirect(w, r, "/index.html", http.StatusSeeOther)
 }
 
-func CheckSessionMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session")
-		if err != nil || cookie.Value == "" {
-			// Если сессия пустая, перенаправляем на страницу авторизации
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		next.ServeHTTP(w, r)
-	}
+// getUserByLogin получает пользователя по логину.
+func (a *AuthService) getUserByLogin(login string) (*models.User, error) {
+    user := &models.User{}
+    err := a.db.QueryRow("SELECT id, login, phone, password FROM Users WHERE login = ?", login).Scan(&user.ID, &user.Login, &user.Phone, &user.Password)
+    if err != nil {
+        return nil, err
+    }
+    return user, nil
+}
+
+// hashPassword хэширует пароль.
+func hashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    return string(bytes), err
+}
+
+// comparePasswords сравнивает хэшированный пароль с обычным.
+func comparePasswords(hashedPwd, plainPwd string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(plainPwd))
+    return err == nil
 }
