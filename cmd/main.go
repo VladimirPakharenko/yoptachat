@@ -61,7 +61,7 @@ func setupDatabase(dataSourceName string) (*sql.DB, error) { //Функция в
 	return db, nil
 }
 
-// setupRoutes настраивает маршруты для приложения.
+// setupRourhtes настраивает маршруты для приложения.
 func setupRoutes(router *mux.Router, authService *auth.AuthService, chatService *chat.ChatService) {
 	// Маршруты для аутентификации
 	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
