@@ -4,17 +4,19 @@ import (
     "database/sql"
     "net/http"
     "golang.org/x/crypto/bcrypt"
+	"github.com/gorilla/sessions"
     "yoptachat/pkg/models"
 )
 
 // AuthService предоставляет методы для аутентификации пользователей.
 type AuthService struct {
     db *sql.DB
+	store *sessions.CookieStore
 }
 
 // NewAuthService создает новый AuthService.
-func NewAuthService(db *sql.DB) *AuthService {
-    return &AuthService{db}
+func NewAuthService(db *sql.DB, store *sessions.CookieStore) *AuthService {
+    return &AuthService{db, store}
 }
 
 // Register регистрирует нового пользователя.
@@ -24,8 +26,8 @@ func (a *AuthService) Register(login, phone, password string) (int, error) {
         return 0, err
     }
 
-    user := models.User{Login: login, Phone: phone, Password: hashedPassword}
-    result, err := a.db.Exec("INSERT INTO Users (login, phone, password) VALUES (?, ?, ?)", user.Login, user.Phone, user.Password)
+    user := models.User{Login: login, Phone: phone, Password: hashedPassword} //создание user'а подобного структуре User и присвоение ему регистрационных данных
+    result, err := a.db.Exec("INSERT INTO Users (login, phone, password) VALUES (?, ?, ?)", user.Login, user.Phone, user.Password)//выполнение запроса по добавлению пользователя в бд->таблицу Users
     if err != nil {
         return 0, err
     }
@@ -46,7 +48,7 @@ func (a *AuthService) Login(w http.ResponseWriter, r *http.Request) {
     }
 
     // Создание сессии
-    session, _ := store.Get(r, "session-name")
+    session, _ := a.store.Get(r, "session-name")
     session.Values["user"] = user.ID
     session.Save(r, w)
 

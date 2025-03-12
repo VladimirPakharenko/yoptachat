@@ -104,3 +104,28 @@ func (c *ChatService) getMessages(senderID, receiverID string) ([]models.Message
     }
     return messages, nil
 }
+
+// AddFriend добавляет пользователя в друзья.
+func (c *ChatService) AddFriend(userID, friendID int) error {
+    _, err := c.db.Exec("INSERT INTO Friends (user_id, friend_id) VALUES (?, ?)", userID, friendID)
+    return err
+}
+
+// GetFriends получает список друзей пользователя.
+func (c *ChatService) GetFriends(userID int) ([]models.User, error) {
+    rows, err := c.db.Query("SELECT u.id, u.login, u.phone FROM Friends f JOIN Users u ON f.friend_id = u.id WHERE f.user_id = ?", userID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var friends []models.User
+    for rows.Next() {
+        var friend models.User
+        if err := rows.Scan(&friend.ID, &friend.Login, &friend.Phone); err != nil {
+            return nil, err
+        }
+        friends = append(friends, friend)
+    }
+    return friends, nil
+}
