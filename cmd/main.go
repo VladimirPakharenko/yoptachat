@@ -20,13 +20,13 @@ var (
 )
 
 func main() {
-	// Настройка базы данных
+	// Настройка базы данных111111
 	db, err := setupDatabase("root:@tcp(127.0.0.1:3306)/chat") //выполнение функции setupDatabase для включения бд
 	if err != nil {
 		log.Fatalf("Ошибка при подключении к базе данных: %v", err)
 	}
 	defer db.Close() //закрытие бд
-
+	
 	// Инициализация сервисов
 	authService := auth.NewAuthService(db, store) //определение переменной для работы с функциями пакета auth
 	chatService := chat.NewChatService(db)        //определение переменной для работы с функциями пакета chat
