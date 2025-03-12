@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,9 +22,12 @@ var (
 
 func main() {
 	// Настройка базы данных
-	db, err := setupDatabase("root:@tcp(127.0.0.1:3306)/chat") //выполнение функции setupDatabase для включения бд
+	db, err := setupDatabase("root:@tcp(127.0.0.1)/chat") //выполнение функции setupDatabase для включения бд
 	if err != nil {
+		fmt.Println("ошибка при подключении к бд")
 		log.Fatalf("Ошибка при подключении к базе данных: %v", err)
+	} else {
+		fmt.Println("БД подключена")
 	}
 	defer db.Close() //закрытие бд
 
@@ -37,12 +41,13 @@ func main() {
 
 	// Открытие html файлов в браузере по пути ниже
 	fs := http.FileServer(http.Dir("../pkg/templates"))
-	http.Handle("/", fs)
+	router.PathPrefix("/").Handler(fs)
 
 	// Запуск сервера
 	log.Println("Сервер запущен на :8080")
 	if err := http.ListenAndServe(":8080", router); //запуск сервера на порту 8080
 	err != nil {
+		fmt.Println("сервак не замущен")
 		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}
 }
@@ -51,10 +56,12 @@ func main() {
 func setupDatabase(dataSourceName string) (*sql.DB, error) { //Функция выполняет вход в бд путем принятия переменной определяющей путь и др данные
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
+		fmt.Println("ошибка 1")
 		return nil, err
 	}
 
 	if err = db.Ping(); err != nil {
+		fmt.Println("ошибка 1")
 		return nil, err
 	}
 
@@ -66,8 +73,10 @@ func setupRoutes(router *mux.Router, authService *auth.AuthService, chatService 
 	// Маршруты для аутентификации
 	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
+			fmt.Println("метод норм")
 			registerHandler(authService, w, r)
 		} else {
+			fmt.Println("метод не разрешен")
 			http.Error(w, "Метод не разрешен", http.StatusMethodNotAllowed)
 		}
 	}).Methods(http.MethodPost)
@@ -115,6 +124,7 @@ func setupRoutes(router *mux.Router, authService *auth.AuthService, chatService 
 			http.Error(w, "Метод не разрешен", http.StatusMethodNotAllowed)
 		}
 	}).Methods(http.MethodPost, http.MethodGet)
+
 }
 
 // registerHandler обрабатывает регистрацию пользователя.
@@ -122,14 +132,26 @@ func registerHandler(authService *auth.AuthService, w http.ResponseWriter, r *ht
 	login := r.FormValue("login")
 	phone := r.FormValue("phone")
 	password := r.FormValue("password")
+	rpassword := r.FormValue("rpassword")
 
+	if rpassword != password {
+		http.Error(w, "Хуйня давай по новой", http.StatusBadRequest)
+		fmt.Println("Пароли несовпадают")
+		return
+	}
+
+	fmt.Println("Попытка регистрации пользователя", login)
 	_, err := authService.Register(login, phone, password)
 	if err != nil {
+		fmt.Printf("Ошибка при регистрации %s: %v\n", login, err)
 		http.Error(w, "Ошибка при регистрации", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	// w.WriteHeader(http.StatusCreated)
+	fmt.Println("переход на /login")
+	http.Redirect(w, r, "/regauth.html", http.StatusSeeOther)
+	fmt.Println("Редирект выполнен")
 }
 
 // addFriendHandler обрабатывает добавление друга.
