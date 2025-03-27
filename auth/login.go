@@ -30,8 +30,9 @@ func (a *AuthService) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Создание сессии
 	session, _ := a.store.Get(r, "session-name")
-	session.Values["user"] = user.ID
+	session.Values["user"] = login
 	session.Save(r, w)
+	// http.Redirect(http.StatusFound, "/")
 
 	// Рендеринг страницы с логином пользователя
 	data := PageData{
@@ -45,13 +46,13 @@ func (a *AuthService) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка при загрузке шаблона", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("tmpl")
+	fmt.Println(tmpl)
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		http.Error(w, "Ошибка при рендеринге шаблона", http.StatusInternalServerError)
 		return
 	}
-	// http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 
 	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	//     tmpl, _ := template.ParseFiles("templates/index.html")

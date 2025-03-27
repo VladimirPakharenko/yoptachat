@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"yoptachat/pkg/models"
+	"yoptachat/models"
 )
 
 // Register регистрирует нового пользователя.

@@ -1,65 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrance</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/icon.svg">
     <style>
         /* Классы Нулевых значений */
-        *{
+        * {
             padding: 0;
             margin: 0;
             box-sizing: border-box;
         }
-        :root{
+
+        :root {
             --fon: #13181d;
             --input: #454545;
             --white: #ffffff;
             --black: #000000;
-            --JBM: JetBrainsMono 
+            --JBM: JetBrainsMono
         }
-        ::placeholder{
+
+        ::placeholder {
             color: var(--white);
         }
-        .hidden{
+
+        .hidden {
             display: none;
         }
+
         /* Классы нулевых значений */
 
-        body{/* Настройка Тела страницы */
+        body {
+            /* Настройка Тела страницы */
             width: 100%;
             height: 100vh;
-            background-color:var(--fon);
+            background-color: var(--fon);
             display: flex;
             justify-content: center;
             align-items: center;
             user-select: none;
         }
-        .container{/* Следующие два селектора поставить в столбик */
+
+        .container {
+            /* Следующие два селектора поставить в столбик */
             display: flex;
             flex-direction: column;
         }
+
         /* Настройка Верхних кнопок смены способов входа */
-        .input_selection{
+        .input_selection {
             display: flex;
         }
-        .input_selection>div{
+
+        .input_selection>div {
             height: 50px;
             width: 150px;
             background-color: var(--white);
             border-right: 1px solid var(--fon);
             border-radius: 0 20px 0 0;
         }
-        .sign_up{
+
+        .sign_up {
             z-index: 3;
         }
-        .sign_in{
+
+        .sign_in {
             z-index: 2;
             position: relative;
             left: -20px;
         }
-        .input_selection>div>a{
+
+        .input_selection>div>a {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -69,39 +83,53 @@
             font-family: var(--JBM);
             height: 100%;
         }
+
         /* Настройка главной формы */
-        .login_form{/* Настройка блока формы */
+        .login_form {
+            /* Настройка блока формы */
             width: 600px;
             height: 700px;
             background-color: var(--white);
             border-radius: 0 10px 30px 30px;
             padding: 20px 70px;
         }
-        h1{/* Настройка h1 */
+
+        h1 {
+            /* Настройка h1 */
             font-family: var(--JBM);
             font-size: 48px;
             font-weight: 500;
         }
-        .div_h1{/* Черта под h1*/
+
+        .div_h1 {
+            /* Черта под h1*/
             display: flex;
             justify-content: center;
             border-bottom: 3px solid var(--black);
         }
-        form{/* Настройка формы */
+
+        form {
+            /* Настройка формы */
             display: flex;
             flex-direction: column;
             height: 100%;
         }
-        form>div{/* Все элементы в столбик */
+
+        form>div {
+            /* Все элементы в столбик */
             display: flex;
             flex-direction: column;
             height: 100%;
             justify-content: flex-end;
         }
-        form > div>*{/* Отступ снизу в форме */
+
+        form>div>* {
+            /* Отступ снизу в форме */
             margin-bottom: 60px;
         }
-        input{/* Настройка полей ввода */
+
+        input {
+            /* Настройка полей ввода */
             padding-left: 10px;
             height: 50px;
             border-radius: 10px;
@@ -112,10 +140,14 @@
             outline: none;
             color: var(--white);
         }
-        input:nth-child(odd){/* Каждый нечетный инпут влево */
+
+        input:nth-child(odd) {
+            /* Каждый нечетный инпут влево */
             align-self: flex-end;
         }
-        button{/* Настройка кнопок */
+
+        button {
+            /* Настройка кнопок */
             height: 50px;
             border: none;
             border-radius: 10px;
@@ -123,14 +155,18 @@
             font-family: var(--JBM);
             color: var(--white);
             font-size: 24px;
-            cursor:pointer;
+            cursor: pointer;
             margin-bottom: 0px !important;
         }
-        .form_authorization,.form_registration{/* один из процессов задания максимальных высот в блоке */
+
+        .form_authorization,
+        .form_registration {
+            /* один из процессов задания максимальных высот в блоке */
             height: 100%;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Смена Входа -->
@@ -145,64 +181,40 @@
         <div class="login_form">
             <!-- Форма Регистрации -->
             <div class="form_registration">
-                <form 
-                    action="/register" 
-                    method="post">
+                <form action="/regauth" method="post">
                     <div>
                         <div class="div_h1">
                             <h1 class="form_registration__h1">Registration</h1>
                         </div>
-                        <input
-                            type="text" 
-                            name="login" 
-                            placeholder="Login">
-                        <input 
-                            type="text" 
-                            name="phone" 
-                            placeholder="Phone">
-                        <input
-                            type="password" 
-                            name="password" 
-                            placeholder="Password">
-                        <input
-                            type="password" 
-                            name="rpassword" 
-                            placeholder="Repeat password">
+                        <input type="text" name="login" placeholder="Login">
+                        <!-- <input type="text" name="phone" placeholder="Phone"> -->
+                        <input type="password" name="password" placeholder="Password">
+                        <!-- <input type="password" name="rpassword" placeholder="Repeat password"> -->
                     </div>
                     <div>
-                        <button class="submit">Register</button>
+                        <button name="action" value="register">Register</button>
                     </div>
                 </form>
             </div>
             <!-- Форма Авторизации -->
             <div class="form_authorization hidden">
-                <form 
-                    action="/login" 
-                    method="post">
+                <form action="/regauth" method="post">
                     <div>
                         <div class="div_h1">
                             <h1 class="h1_auth">Authorization</h1>
                         </div>
-                        <input 
-                            type="text" 
-                            name="login"
-                            placeholder="Enter your login/phone">
-                        <input 
-                            type="password" 
-                            name="password" 
-                            placeholder="Password">
-                        <input 
-                            type="password" 
-                            name="rpassword" 
-                            placeholder="Repeat password">
+                        <input type="text" name="login" placeholder="Enter your login/phone">
+                        <input type="password" name="password" placeholder="Password">
+                        <!-- <input type="password" name="rpassword" placeholder="Repeat password"> -->
                     </div>
                     <div>
-                        <button>Login</button>
+                        <button name="action" value="login">Login</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <script src="js/regauth.js"></script>
+    <script src="/static/regauth.js"></script>
 </body>
+
 </html>

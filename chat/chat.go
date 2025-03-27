@@ -4,7 +4,7 @@ import (
     "database/sql"
     "encoding/json"
     "net/http"
-    "yoptachat/pkg/models"
+    "yoptachat/models"
 )
 
 // ChatService предоставляет методы для работы с чатами.

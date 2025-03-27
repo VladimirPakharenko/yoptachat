@@ -1,6 +1,6 @@
 package auth
 
-import "yoptachat/pkg/models"
+import "yoptachat/models"
 
 // getUserByLogin получает пользователя по логину.
 func (a *AuthService) getUserByLogin(login string) (*models.User, error) {
