@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат</title>
+</head>
+<style>
+    /* Классы Нулевых значений */
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        list-style: none;
+        text-decoration: none;
+        font-size: var(--JBM);
+    }
+
+    :root {
+        --fon: #13181d;
+        --input: #454545;
+        --white: #ffffff;
+        --black: #000000;
+        --fonchat: #2C2A2B;
+        --JBM: JetBrainsMono
+    }
+
+    ::placeholder {
+        color: var(--white);
+        opacity: .79026791781;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    html,
+    body {
+        height: 100%;
+    }
+
+    /* Классы нулевых значений */
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        color: white;
+        font-size: 40px;
+
+        .friend-name {
+            width: 100%;
+            height: 70px;
+            background-color: #010a2b;
+            border-radius: 0 0 50px 50px;
+            display: flex;
+            align-items: center;
+        }
+
+        .chats {
+            flex: 1 0 auto;
+            overflow-y: auto;
+            width: 70%;
+
+
+            #messages {
+                list-style-type: none;
+                padding: 0;
+                width: 100%;
+
+                .message {
+                    margin: 10px 0;
+
+                    display: flex;
+
+                    .mess {
+                        background-color: #104366;
+                        padding: 15px;
+                        border-radius: 20px;
+                    }
+
+                    &.sender {
+                        justify-content: flex-end;
+
+                        .mess {
+                            background-color: #341313;
+                        }
+                    }
+                }
+            }
+        }
+
+        .send {
+            flex: 0 0 auto;
+            width: 70%;
+        }
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div class="friend-name">
+            <p>{{ range .receivers}}{{ .Login}}{{ end}}</p>
+        </div>
+        <div class="chats">
+            <div id="messages">
+                {{ range .messages }}
+                <div class="message {{ if eq .SenderID $.session.user_id }}sender{{ else }}receiver{{ end }}">
+                    <div class="mess">
+                        <strong>
+                            {{ if eq .SenderID $.session.user_id }}
+                            Вы
+                            {{ else }}
+                            {{ range $.receivers }}{{ if eq .ID $.SenderID }}{{ .Login }}{{ end }}{{ end }}
+                            {{ end }} ({{ .Timestamp }}):
+                        </strong>
+                        {{ .Message }}
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        <div class="send">
+            <input type="text" id="messageInput" placeholder="Введите сообщение..." />
+            <button type="button" id="sendButton">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        const senderID = "{{ .session.user_id }}";
+        const receiverID = "{{ range .receivers }}{{ .ID }}{{ end }}";
+        const conn = new WebSocket(`wss://${window.location.host}/ws?sender_id=${senderID}`);
+        const messages = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        conn.onopen = function () {
+            console.log("WebSocket connection established");
+        };
+
+        conn.onerror = function (error) {
+            console.error("WebSocket Error: ", error);
+        };
+
+        conn.onmessage = function (event) {
+            const msg = JSON.parse(event.data);
+            console.log(msg);
+            const li = document.createElement('div');
+            li.className = `message ${msg.SenderID === senderID ? 'sender' : 'receiver'}`;
+            li.innerHTML = `
+            <div class="mess">
+                <strong>
+                    ${msg.SenderID === senderID ? 'Вы' : msg.SenderID}):
+                </strong> 
+                ${msg.Content}
+            </div>
+        `;
+            messages.appendChild(li);
+        };
+
+        sendButton.onclick = function () {
+            const msg = {
+                SenderID: senderID,
+                ReceiverID: receiverID,
+                Content: messageInput.value,
+            };
+            console.log("Sending message: ", msg);
+            conn.send(JSON.stringify(msg));
+            messageInput.value = '';
+        };
+    </script>
+</body>
+
+</html>
