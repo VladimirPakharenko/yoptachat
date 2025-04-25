@@ -15,9 +15,13 @@
             box-sizing: border-box;
             list-style: none;
             text-decoration: none;
-            font-size: 1rem;
+            /* font-size: 1rem; */
             color: black;
-            font-size: var(--JBM);
+            font-family: var(--JBM);
+        }
+
+        button {
+            cursor: pointer;
         }
 
         :root {
@@ -54,14 +58,15 @@
                 height: 100%;
 
                 .search {
-                    width: 500px;
-                    min-width: 600px;
+                    max-width: 480px;
+                    min-width: 480px;
                     height: 100%;
                     padding: 15px;
                     background-color: var(--fon);
                     display: flex;
                     flex-direction: column;
-                    box-shadow: -35px 0px 50px var(--white);
+                    /* box-shadow: -35px 0px 50px var(--white); */
+                    border-right: 1px solid rgb(80, 80, 80);
 
                     .head {
                         display: flex;
@@ -70,6 +75,7 @@
                         height: 50px;
 
                         .modal {
+                            position: relative;
                             width: 45px;
                             height: 30px;
                             flex-direction: column;
@@ -141,7 +147,6 @@
         }
 
         input {
-            /* Настройка полей ввода */
             width: 100%;
             padding: 0 10px;
             height: 50px;
@@ -172,9 +177,17 @@
             }
         }
 
+        a {
+            color: var(--white);
+        }
+
         li {
             color: var(--white);
             font-size: 32px;
+        }
+
+        li:hover {
+            background-color: #ffffff15;
         }
 
         .list ul div {
@@ -207,6 +220,7 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            padding-bottom: 30px;
             /* padding: 30px 200px; */
         }
 
@@ -226,6 +240,46 @@
                 color: var(--white);
             }
         }
+
+        .you {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+        }
+
+        .mod {
+            position: absolute;
+            top: 150%;
+            left: 0;
+            width: auto;
+            min-width: 250px;
+            height: auto;
+            background-color: var(--input);
+            border-radius: 5px;
+
+            .flex {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0 20px 0 20px;
+
+                * {
+                    height: 75px;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .exit {
+                    color: var(--white);
+                    font-size: 30px;
+                }
+
+                p {
+                    color: var(--white);
+                    font-size: 30px;
+                }
+            }
+        }
     </style>
 </head>
 
@@ -233,22 +287,27 @@
     <div class="container">
         <div class="search">
             <div class="head">
-                <button class="modal">
+                <button class="modal" id="modalbtn">
                     <span></span>
                     <span></span>
                     <span></span>
+                    <div class="mod hidden" id="modal">
+                        <div class="flex">
+                            <div><img src="static/ado.jpeg" alt="#" class="you">
+                                <p>{{ .session.login}}</p>
+                            </div>
+                            <div><a href="/logout" class="exit">Выйти</a></div>
+                        </div>
+                    </div>
                 </button>
-                <div class="mod hidden">
-                    {{ .session.login}}
-                    {{ .session.user_id}}
-                </div>
                 <div>
-                    <input type="text" id="search" oninput="searchUsers()" placeholder="{{ .session.login}} ищет друга">
+                    <input type="text" id="search" autocomplete="off" oninput="searchUsers()" placeholder="{{ .session.login}} ищет друга">
                 </div>
             </div>
             <hr>
             <div class="folder">
-                <h1>Чаты</h1>
+                <h1>Yopta Чаты</h1>
+
             </div>
             <hr>
             <div class="list">
@@ -259,7 +318,7 @@
                     {{ range .friends }}
                     <li><a href="#" onclick="openChat('{{ .ID }}')">{{ .Login }}</a></li>
                     {{ else }}
-                    <li>У вас нет друзей.</li>
+                    <li>Вы одиноки. Вам хочется иметь друзей? А <span style="filter: blur(6px); color: var(--white); text-decoration: line-through;">ХУЙ</span>  вам!!! Вы не по адресу. Здесь друзей нет.</li>
                     {{ end }}
                 </ul>
             </div>
@@ -312,8 +371,6 @@
                                 document.getElementById('results').innerHTML = '';
                                 uli.classList.remove("hidden")
                             };
-
-                            // listItem.appendChild(addButton);
                             div.appendChild(listItem);
                             div.appendChild(addButton);
                             resultsList.appendChild(div);
@@ -331,6 +388,11 @@
             chatFrame.src = `/chat?friendID=${friendID}`;
             chatFrame.style.display = 'block'; // Показываем iframe при открытии чата
         }
+        const modalbtn = document.getElementById('modalbtn');
+        const modal = document.getElementById('modal');
+        modalbtn.addEventListener('click', () => {
+            modal.classList.toggle('hidden')
+        })
     </script>
 </body>
 

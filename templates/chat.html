@@ -49,22 +49,43 @@
         height: 100%;
         width: 100%;
         color: white;
-        font-size: 40px;
+        font-size: 22px;
+        margin-bottom: 20px;
 
         .friend-name {
             width: 100%;
             height: 70px;
-            background-color: #010a2b;
-            border-radius: 0 0 50px 50px;
+            background-color: var(--fon);
+            border-radius: 0 0 20px 20px;
+            padding: 9px 0 9px 18px;
+            border: 1px solid rgb(80, 80, 80);
             display: flex;
             align-items: center;
         }
 
         .chats {
             flex: 1 0 auto;
+            height: 80%;
             overflow-y: auto;
             width: 70%;
 
+            &::-webkit-scrollbar {
+                width: 12px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background-color: var(--fon);
+                border-radius: 10px;
+                border: 1px solid white;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: none;
+            }
+
+            &::-webkit-scrollbar-button {
+                background-color: none;
+            }
 
             #messages {
                 list-style-type: none;
@@ -73,7 +94,6 @@
 
                 .message {
                     margin: 10px 0;
-
                     display: flex;
 
                     .mess {
@@ -98,6 +118,18 @@
             width: 70%;
         }
     }
+    input {
+            width: 100%;
+            padding: 0 10px;
+            height: 50px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-family: var(--JBM);
+            background-color: var(--input);
+            outline: none;
+            border: none;
+            color: var(--white);
+        }
 </style>
 
 <body>
@@ -105,17 +137,17 @@
         <div class="friend-name">
             <p>{{ range .receivers}}{{ .Login}}{{ end}}</p>
         </div>
-        <div class="chats">
+        <div class="chats" id="chats">
             <div id="messages">
                 {{ range .messages }}
                 <div class="message {{ if eq .SenderID $.session.user_id }}sender{{ else }}receiver{{ end }}">
                     <div class="mess">
                         <strong>
                             {{ if eq .SenderID $.session.user_id }}
-                            Вы
+                            {{ $.session.login}}
                             {{ else }}
-                            {{ range $.receivers }}{{ if eq .ID $.SenderID }}{{ .Login }}{{ end }}{{ end }}
-                            {{ end }} ({{ .Timestamp }}):
+                            {{ range $.receivers }}{{ .Login }}{{ end }}
+                            {{ end }}:
                         </strong>
                         {{ .Message }}
                     </div>
@@ -124,8 +156,8 @@
             </div>
         </div>
         <div class="send">
-            <input type="text" id="messageInput" placeholder="Введите сообщение..." />
-            <button type="button" id="sendButton">Отправить</button>
+            <input type="text" autocomplete="off" id="messageInput" placeholder="Введите сообщение..." />
+            <button type="button" class="hidden" id="sendButton">Отправить</button>
         </div>
     </div>
 
@@ -147,18 +179,21 @@
 
         conn.onmessage = function (event) {
             const msg = JSON.parse(event.data);
-            console.log(msg);
-            const li = document.createElement('div');
-            li.className = `message ${msg.SenderID === senderID ? 'sender' : 'receiver'}`;
-            li.innerHTML = `
-            <div class="mess">
-                <strong>
-                    ${msg.SenderID === senderID ? 'Вы' : msg.SenderID}):
-                </strong> 
-                ${msg.Content}
-            </div>
-        `;
-            messages.appendChild(li);
+            if (msg.SenderID === senderID && msg.ReceiverID === receiverID || msg.SenderID === receiverID && msg.ReceiverID === senderID) {
+                // console.log(msg);
+                // console.log('пришло');
+                const li = document.createElement('div');
+                li.className = `message ${msg.SenderID === senderID ? 'sender' : 'receiver'}`;
+                li.innerHTML = `
+                <div class="mess">
+                    <strong>
+                        ${msg.SenderID === senderID ? 'Вы' : msg.SenderID}:
+                    </strong> 
+                    ${msg.Content}
+                </div>`;
+                messages.appendChild(li);
+            }
+            chats.scrollTop = chats.scrollHeight;
         };
 
         sendButton.onclick = function () {
@@ -167,10 +202,29 @@
                 ReceiverID: receiverID,
                 Content: messageInput.value,
             };
-            console.log("Sending message: ", msg);
+            // console.log("Sending message: ", msg);
             conn.send(JSON.stringify(msg));
             messageInput.value = '';
         };
+
+        window.onload = () => {
+            chats.scrollTop = chats.scrollHeight;
+        };
+
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const msg = {
+                    SenderID: senderID,
+                    ReceiverID: receiverID,
+                    Content: messageInput.value,
+                };
+                // console.log("Sending message: ", msg);
+                conn.send(JSON.stringify(msg));
+                messageInput.value = '';
+            }
+        })
+
     </script>
 </body>
 

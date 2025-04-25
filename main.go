@@ -175,7 +175,6 @@ func handleWebSocket(c *gin.Context) {
 			fmt.Println("Error saving message to DB:", err)
 			continue
 		}
-		// fmt.Println(msg.ReceiverID, msg.SenderID, msg.Content)
 
 		for client, id := range clients {
 			if id == msg.ReceiverID {
@@ -195,4 +194,5 @@ func handleWebSocket(c *gin.Context) {
 		}
 	}
 }
+
 //накатить стилей
